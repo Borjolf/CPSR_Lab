@@ -58,20 +58,24 @@ class Planning:
         closed_list = {}
         ancestors = {}
 
+        
+
         while not(open_list):
             current_node = r,c = min(open_list,key=lambda k: open_list.get(k)[0])
             f,g = open_list[current_node]
-            open_list.remove(current_node)
+            open_list.pop(current_node)
         
-        if current_node == goal_rc:
-            return self._reconstruct_path(start,goal,ancestors)
-        
-        
-        neighbors = [(r+1,c),(r-1,c),(r,c+1),(r,c-1)]
+            if current_node == goal_rc:
+                return self._reconstruct_path(start,goal,ancestors)
+            
+            
+            neighbors = [(r+1,c),(r-1,c),(r,c+1),(r,c-1)]
 
-        for n in range(len(neighbors)):
-            if not(self._map.contains(neighbors[n])):
-                neighbors.pop(n)
+            for n in range(len(neighbors)):
+                if not(self._map.contains(neighbors[n])):
+                    neighbors.pop(n)
+
+        
         
 
 
@@ -184,18 +188,17 @@ class Planning:
             Admissible heuristic.
 
         """
-        map_rows, map_cols = self._map.shape
-        r_goal, c_goal = goal #Absolute
-        x_goal = r_goal + 4
-        y_goal = c_goal + 4
+        map_rows, map_cols = np.shape(self._map.grid_map)
+        goal_rc = self._xy_to_rc(goal)
         
-
         map_manhattan = np.zeros((map_rows,map_cols), dtype = int)
-        print(map_manhattan)
-        for i in range(map_rows):
-            for j in range(map_cols):
-                dist_man = abs(i-y_goal) + abs(j-x_goal)
-                map_manhattan [i][j] = dist_man
+
+        for row in range(map_rows):
+            for col in range(map_cols):
+                dist_man = abs(row - goal_rc[0]) + abs(col - goal_rc[1])
+                map_manhattan [row][col] = dist_man
+        
+        
         print(map_manhattan)
 
 
@@ -268,7 +271,7 @@ def test():
 
     planning = Planning(m, action_costs)
     path = planning.a_star(start, goal)
-    smoothed_path = planning.smooth_path(path, data_weight=0.1, smooth_weight=0.1)
+    #smoothed_path = planning.smooth_path(path, data_weight=0.1, smooth_weight=0.1)
     #planning.show(path, smoothed_path, block=True)
 
 
