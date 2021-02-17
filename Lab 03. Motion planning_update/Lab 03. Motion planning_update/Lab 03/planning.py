@@ -56,7 +56,7 @@ class Planning:
 
         while (open_list):
             current_node = r,c = min(open_list,key=lambda k: open_list.get(k)[0])
-            f,g = open_list[current_node]
+            _,g = open_list[current_node]
             open_list.pop(current_node)
         
             if current_node == goal_rc:
@@ -78,10 +78,10 @@ class Planning:
                     g_new = g + 1 ###### HACE FALTA CALCULAR EL COSTE BIEN, YO HE PUESTO 1
                     f_new = g_new + heuristic_map[neighbors[i][0]][neighbors[i][1]]
                     open_list[neighbors[i]] = (f_new, g_new)
-                    open_list[neighbors[i]] = current_node
+                    ancestors[neighbors[i]] = current_node
 
             closed_list.add(current_node)
-            print(current_node)
+            
 
         print("error")
         return
@@ -202,11 +202,27 @@ class Planning:
         Returns: Path to the goal (start location first) in (x, y) format.
 
         """
-        ########################
-        #OJO CUIDAO PASAR A XY
-        ####################
-        # TODO: Complete with your code.
-        pass
+        
+        ancestors_xy = {}
+
+        for node,ancestor in ancestors.items():
+            node_xy = self._rc_to_xy(node)
+            ancestor_xy = self._rc_to_xy(ancestor)
+            ancestors_xy[node_xy] = ancestor_xy
+            
+        path = []
+        path.append(goal)
+
+        new_node = ancestors_xy[goal]
+
+        while new_node != start:
+            new_node = ancestors_xy[path[len(path)-1]]
+            path.append(new_node)
+
+        path.reverse()
+        return path
+
+        
 
     def _xy_to_rc(self, xy: Tuple[float, float]) -> Tuple[int, int]:
         """Converts (x, y) coordinates of a metric map to (row, col) coordinates of a grid map.
@@ -257,8 +273,8 @@ def test():
 
     planning = Planning(m, action_costs)
     path = planning.a_star(start, goal)
-    #smoothed_path = planning.smooth_path(path, data_weight=0.1, smooth_weight=0.1)
-    #planning.show(path, smoothed_path, block=True)
+    smoothed_path = planning.smooth_path(path, data_weight=0.1, smooth_weight=0.1)
+    planning.show(path, smoothed_path, block=True)
 
 
 if __name__ == '__main__':
