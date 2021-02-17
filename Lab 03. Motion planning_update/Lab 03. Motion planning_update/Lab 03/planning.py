@@ -60,8 +60,6 @@ class Planning:
         closed_list = {}
         ancestors = {}
 
-        '''
-
         while not(open_list):
             current_node = r,c = min(open_list,key=lambda k: open_list.get(k)[0])
             f,g = open_list[current_node]
@@ -78,9 +76,6 @@ class Planning:
                 neighbors.pop(n)
 
 
-        '''
-        
-        pass
 
 
 
