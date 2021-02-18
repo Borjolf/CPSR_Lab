@@ -12,12 +12,12 @@ from typing import Dict, List, Tuple
 class Planning:
     """Class to plan the optimal path to a given location."""
 
-    def __init__(self, map_object: Map, action_costs: Tuple[float, float, float, float]):
+    def __init__(self, map_object: Map, action_costs: Tuple[float, float, float]):
         """Planning class initializer.
 
         Args:
             map_object: Map of the environment.
-            action_costs: Cost of of moving one cell left, right, up, and down.
+            action_costs: Cost of going straight, turning left and turning right
 
         """
         self._map = map_object
@@ -75,7 +75,7 @@ class Planning:
             
             for i in range(len(neighbors)):
                 if (not(neighbors[i] in closed_list)) and (not(neighbors[i] in open_list)):
-                    g_new = g + self._cost(current_node, neighbors[i]) 
+                    g_new = g + self._cost(current_node, neighbors[i], ancestors) 
                     f_new = g_new + heuristic_map[neighbors[i][0]][neighbors[i][1]]
                     open_list[neighbors[i]] = (f_new, g_new)
                     ancestors[neighbors[i]] = current_node
@@ -87,18 +87,58 @@ class Planning:
         return
 
 
-    def _cost(self, node1: Tuple[int, int], node2: Tuple[int, int]) -> float:
+    def _cost(self,node2: Tuple[int, int], node3:Tuple[int,int], ancestors: Dict[Tuple[int, int], Tuple[int, int]]) -> float:
         cost = 0.0
-        if (node2[1] < node1[1]) and (node2[0] == node1[0]): 
-            cost = self._action_costs[0] #left
-        elif (node2[1] > node1[1]) and (node2[0] == node1[0]):
-            cost = self._action_costs[1] #right
-        elif (node2[0] > node1[0]) and (node2[1] == node1[1]):
-            cost = self._action_costs[2] #up
-        elif (node2[0] < node1[0]) and (node2[1] == node1[1]):
-            cost = self._action_costs[3] #down
-        else: 
-            print("error")
+
+        cost_straight, cost_left, cost_right = self._action_costs
+
+        try:
+            node1 = ancestors[node2]
+            if (node2[1] < node1[1]) and (node2[0] == node1[0]): 
+                #looking left
+                if (node3[1] < node2[1]) and (node3[0] == node2[0]):
+                    cost = cost_straight  
+                elif (node3[0] > node2[0]) and (node3[1] == node2[1]):
+                    cost = cost_right
+                elif (node3[0] < node2[0]) and (node3[1] == node2[1]):
+                    cost = cost_left
+                else:
+                    print("Error")
+            elif (node2[1] > node1[1]) and (node2[0] == node1[0]):
+                #looking right
+                if (node3[1] > node2[1]) and (node3[0] == node2[0]):
+                    cost = cost_straight
+                elif (node3[0] < node2[0]) and (node3[1] == node2[1]):
+                    cost = cost_right
+                elif (node3[0] > node2[0]) and (node3[1] == node2[1]):
+                    cost = cost_left
+                else:
+                    print("Error")
+            elif (node2[0] > node1[0]) and (node2[1] == node1[1]):
+                #looking up
+                if (node3[0] > node2[0]) and (node3[1] == node2[1]):
+                    cost = cost_straight
+                elif (node3[1] > node2[1]) and (node3[0] == node2[0]):
+                    cost = cost_right
+                elif (node3[1] < node2[1]) and (node3[0] == node2[0]):
+                    cost = cost_left
+                else:
+                    print("Error")
+            elif (node2[0] < node1[0]) and (node2[1] == node1[1]):
+                #looking down
+                if (node3[0] < node2[0]) and (node3[1] == node2[1]):
+                    cost = cost_straight
+                elif (node3[1] < node2[1]) and (node3[0] == node2[0]):
+                    cost = cost_right
+                elif (node3[1] > node2[1]) and (node3[0] == node2[0]):
+                    cost = cost_left
+                else:
+                    print("Error")
+            else: 
+                print("error")
+
+        except:
+            cost = cost_straight #this meains we are at the start point and we dont know the previous node
 
         return cost    
 
@@ -285,7 +325,7 @@ def test():
 
     start = (-4.0, -4.0)
     goal = (4.0, 4.0)
-    action_costs = (1.0,1.0,1.0,1.0)  #left,right,up,down
+    action_costs = (1.0  , 5.0  ,  10.0 )  #stright, turn left and turn right
 
     planning = Planning(m, action_costs)
     path = planning.a_star(start, goal)
