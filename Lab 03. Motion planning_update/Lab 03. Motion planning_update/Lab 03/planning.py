@@ -75,7 +75,7 @@ class Planning:
             
             for i in range(len(neighbors)):
                 if (not(neighbors[i] in closed_list)) and (not(neighbors[i] in open_list)):
-                    g_new = g + 1 ###### HACE FALTA CALCULAR EL COSTE BIEN, YO HE PUESTO 1
+                    g_new = g + self._cost(current_node, neighbors[i]) 
                     f_new = g_new + heuristic_map[neighbors[i][0]][neighbors[i][1]]
                     open_list[neighbors[i]] = (f_new, g_new)
                     ancestors[neighbors[i]] = current_node
@@ -85,7 +85,23 @@ class Planning:
 
         print("error")
         return
-       
+
+
+    def _cost(self, node1: Tuple[int, int], node2: Tuple[int, int]) -> float:
+        cost = 0.0
+        if (node2[1] < node1[1]) and (node2[0] == node1[0]): 
+            cost = self._action_costs[0] #left
+        elif (node2[1] > node1[1]) and (node2[0] == node1[0]):
+            cost = self._action_costs[1] #right
+        elif (node2[0] > node1[0]) and (node2[1] == node1[1]):
+            cost = self._action_costs[2] #up
+        elif (node2[0] < node1[0]) and (node2[1] == node1[1]):
+            cost = self._action_costs[3] #down
+        else: 
+            print("error")
+
+        return cost    
+
 
     @staticmethod
     def smooth_path(path, data_weight: float = 0.1, smooth_weight: float = 0.1, tolerance: float = 1e-6) -> \
@@ -269,7 +285,7 @@ def test():
 
     start = (-4.0, -4.0)
     goal = (4.0, 4.0)
-    action_costs = (1.0, 1.0, 1.0, 1.0)
+    action_costs = (1.0,1.0,1.0,1.0)  #left,right,up,down
 
     planning = Planning(m, action_costs)
     path = planning.a_star(start, goal)
