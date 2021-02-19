@@ -55,6 +55,8 @@ class Planning:
         ancestors = {}
 
         while (open_list):
+            if (current_node):
+                old_node=current_node
             current_node = r,c = min(open_list,key=lambda k: open_list.get(k)[0])
             _,g = open_list[current_node]
             open_list.pop(current_node)
@@ -78,7 +80,7 @@ class Planning:
                     g_new = g + self._cost(current_node, neighbors[i], ancestors) 
                     f_new = g_new + heuristic_map[neighbors[i][0]][neighbors[i][1]]
                     open_list[neighbors[i]] = (f_new, g_new)
-                    ancestors[neighbors[i]] = current_node
+             ancestors[current_node] = old_node
 
             closed_list.add(current_node)
             
