@@ -55,8 +55,6 @@ class Planning:
         ancestors = {}
         current_node=0
         while (open_list):
-            if (current_node):
-                old_node=current_node
             current_node = r,c = min(open_list,key=lambda k: open_list.get(k)[0])
             _,g = open_list[current_node]
             open_list.pop(current_node)
@@ -68,26 +66,21 @@ class Planning:
             
             possible_neighbors = [(r+1,c),(r-1,c),(r,c+1),(r,c-1)]
             neighbors = []
-
             for n in range(len(possible_neighbors)):
                 neighbor_xy = self._rc_to_xy(possible_neighbors[n])
                 if self._map.contains(neighbor_xy):
                     neighbors.append(possible_neighbors[n])
-
             
             for i in range(len(neighbors)):
                 if (not(neighbors[i] in closed_list)) and (not(neighbors[i] in open_list)):
                     g_new = g + self._cost(current_node, neighbors[i], ancestors) 
                     f_new = g_new + heuristic_map[neighbors[i][0]][neighbors[i][1]]
                     open_list[neighbors[i]] = (f_new, g_new)
-             ancestors[current_node] = old_node
-
+                    ancestors[neighbors[i]] = current_node
             closed_list.add(current_node)
             
-
         print("error")
         return
-
 
     def _cost(self,node2: Tuple[int, int], node3:Tuple[int,int], ancestors: Dict[Tuple[int, int], Tuple[int, int]]) -> float:
         cost = 0.0
