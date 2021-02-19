@@ -157,8 +157,26 @@ class Planning:
         Returns: Smoothed path (initial location first) in (x, y) format.
 
         """
-        # TODO: Complete with your code.
-        pass
+        
+        error = tolerance + 1.0  #so we can be sure it enters the while loop for the first time
+        #smooth_path = path   hacer esto es una mierda, porque te iguala las dos cosas, y si modificas una, modificas la otra, cositas de nuestro amigo monty python
+        smooth_path = path[:]   #esto si que crea una copia bien
+
+
+        while error > tolerance:
+            error = 0
+            for i in range(len(path)):
+                if i > 0 and i < (len(path)-1):
+                    new_node_x = smooth_path[i][0] + data_weight*(path[i][0]-smooth_path[i][0]) + smooth_weight*(smooth_path[i+1][0]+smooth_path[i-1][0]-(2*smooth_path[i][0]))
+                    new_node_y = smooth_path[i][1] + data_weight*(path[i][1]-smooth_path[i][1]) + smooth_weight*(smooth_path[i+1][1]+smooth_path[i-1][1]-(2*smooth_path[i][1]))
+
+                    error += abs(smooth_path[i][0] - new_node_x) + abs(smooth_path[i][1] - new_node_y)
+                    
+                    smooth_path[i] = new_node_x,new_node_y
+                else:
+                    pass
+        
+        return smooth_path
 
     @staticmethod
     def plot(axes, path: List[Tuple[float, float]], smoothed_path: List[Tuple[float, float]] = ()):
@@ -329,7 +347,7 @@ def test():
 
     planning = Planning(m, action_costs)
     path = planning.a_star(start, goal)
-    smoothed_path = planning.smooth_path(path, data_weight=0.1, smooth_weight=0.1)
+    smoothed_path = planning.smooth_path(path, data_weight=0.15, smooth_weight=0.1)
     planning.show(path, smoothed_path, block=True)
 
 
