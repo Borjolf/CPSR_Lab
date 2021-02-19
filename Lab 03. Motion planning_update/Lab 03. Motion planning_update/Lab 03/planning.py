@@ -53,7 +53,7 @@ class Planning:
         open_list ={start_rc:(0,0)}
         closed_list = set()
         ancestors = {}
-
+        current_node=0
         while (open_list):
             if (current_node):
                 old_node=current_node
