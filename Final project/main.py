@@ -6,6 +6,8 @@ import time
 from robot_p3dx import RobotP3DX
 from navigation import Navigation
 from typing import Tuple
+from particle_filter import ParticleFilter
+from map import Map
 
 
 def create_robot(client_id: int, x: float, y: float, theta: float):
@@ -60,17 +62,45 @@ if __name__ == '__main__':
     localized = False
     start_time = time.time()
 
+    #particle filter
+    import time
+    m = Map('map_project.json', sensor_range=robot.SENSOR_RANGE, compiled_intersect=True, use_regions=True)
+    pf = ParticleFilter(m, robot.SENSORS[:16], robot.SENSOR_RANGE)
+    count = 0
+
     try:
         while not goal_reached(robot_handle, goal, localized):
             # Write your control algorithm here
             z_us, z_v, z_w = robot.sense()
             v, w = navigation.explore(z_us, z_v, z_w)
             robot.move(v, w)
+            start = time.time()
+            pf.move(v, w, dt)
+            move = time.time() - start
+
+            start = time.time()
+            pf.show('Move', save_figure=True)
+            plot_move = time.time() - start
+
+            ##################################PARTICLE FILTER
+            if count >= 10:
+                robot.move(0.0,0.0)
+                start = time.time()
+                pf.resample(z_us)
+                sense = time.time() - start
+
+                start = time.time()
+                pf.show('Sense', save_figure=True)
+                plot_sense = time.time() - start
+                count = 0
+            #######################################
 
             # Execute the next simulation step
             sim.simxSynchronousTrigger(client_id)
             sim.simxGetPingTime(client_id)  # Make sure the simulation step has finished
             steps += 1
+            
+            count +=1
 
     except KeyboardInterrupt:  # Press Ctrl+C to break the infinite loop and gracefully stop the simulation
         pass

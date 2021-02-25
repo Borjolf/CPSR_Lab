@@ -1,5 +1,6 @@
 from typing import List, Tuple
 import time
+import numpy as np
 
 class Navigation:
     """Class for short-term path planning."""
@@ -50,7 +51,7 @@ class Navigation:
             error_angulo = z_us[7] - z_us[8]
             error_distancia = (z_us[7] + z_us[8]) / 2.0 - 0.35
             w = -kpa * error_angulo - kpd * error_distancia
-            v = 1
+            v = 0.95
             
             if z_us[7] >= 0.8:
                 self.estado = 21
@@ -85,7 +86,7 @@ class Navigation:
 
         if self.estado == 3:
             w = 0
-            v = 0.8
+            v = 0.5
             if  z_us[7] < 0.8:
                 self.estado = 0
         
@@ -109,8 +110,5 @@ class Navigation:
                 self.estado = 0
 
         '''
-
-        print(self.estado)
-        
 
         return v, w

@@ -12,7 +12,7 @@ class ParticleFilter:
     """Particle filter implementation."""
 
     def __init__(self, map_object: Map, sensors: List[Tuple[float, float, float]],
-                 sensor_range: float, particle_count: int = 600, sense_noise: float = 0.5*1.5,
+                 sensor_range: float, particle_count: int = 400, sense_noise: float = 0.5*1.5,
                  v_noise: float = 0.05*1.5, w_noise: float = 0.05*1.5, figure_size: Tuple[float, float] = (7, 7)):
         """Particle filter class initializer.
 
@@ -162,7 +162,7 @@ class ParticleFilter:
             if not os.path.isdir(save_dir):
                 os.mkdir(save_dir)
 
-            file_name = str(self._iteration).zfill(4) + ' ' + title.lower() + '.jpg'
+            file_name = str(self._iteration).zfill(4) + ' ' + title.lower() + '.png'
             file_path = os.path.join(save_dir, file_name)
             figure.savefig(file_path)
 

@@ -347,8 +347,17 @@ class Map:
             rc: (row, col) starting from (0, 0) at the top left corner.
 
         """
-        x = math.floor(xy[0])
-        y = math.ceil(xy[1])
+        
+
+        try:
+            x = math.floor(xy[0])
+        except:
+            x = 2.0
+
+        try:
+            y = math.ceil(xy[1])
+        except:
+            y = 2.0
 
         row = int(self._YR - y)
         col = int(x + self._XC)
