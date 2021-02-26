@@ -186,11 +186,14 @@ class ParticleFilter:
             x = (x_max - x_min) * random.rand() + x_min
             y = (y_max - y_min) * random.rand() + y_min
             th = random.choice([0, math.pi/2, math.pi, 3*math.pi/2])
+            '''
+            while not(self._map.contains((x,y))):
+                x = (x_max - x_min) * random.rand() + x_min
+                y = (y_max - y_min) * random.rand() + y_min
+            '''
 
-            particles[i] = x , y , th
-
-
-        # TODO: Complete with your code.
+            if self._map.contains((x,y)):
+                particles[i] = x , y , th
 
         return particles
 

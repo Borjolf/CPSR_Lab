@@ -72,17 +72,20 @@ if __name__ == '__main__':
         while not goal_reached(robot_handle, goal, localized):
             # Write your control algorithm here
             z_us, z_v, z_w = robot.sense()
+
+            start = time.time()
+            pf.move(z_v, z_w, dt)
+            move = time.time() - start
+
             v, w = navigation.explore(z_us, z_v, z_w)
             robot.move(v, w)
-            start = time.time()
-            pf.move(v, w, dt)
-            move = time.time() - start
+            
 
             start = time.time()
             pf.show('Move', save_figure=True)
             plot_move = time.time() - start
 
-            ##################################PARTICLE FILTER
+            ##################################PARTICLE FILTER RESAMPLE
             if count >= 10:
                 robot.move(0.0,0.0)
                 start = time.time()
