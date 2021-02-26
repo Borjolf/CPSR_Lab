@@ -12,8 +12,8 @@ class ParticleFilter:
     """Particle filter implementation."""
 
     def __init__(self, map_object: Map, sensors: List[Tuple[float, float, float]],
-                 sensor_range: float, particle_count: int = 400, sense_noise: float = 0.5*1.5,
-                 v_noise: float = 0.05*1.5, w_noise: float = 0.05*1.5, figure_size: Tuple[float, float] = (7, 7)):
+                 sensor_range: float, particle_count: int = 700, sense_noise: float = 0.5*3,
+                 v_noise: float = 0.05*3, w_noise: float = 0.05*3, figure_size: Tuple[float, float] = (7, 7)):
         """Particle filter class initializer.
 
         Args:
@@ -186,11 +186,12 @@ class ParticleFilter:
             x = (x_max - x_min) * random.rand() + x_min
             y = (y_max - y_min) * random.rand() + y_min
             th = random.choice([0, math.pi/2, math.pi, 3*math.pi/2])
-            '''
+
+            
             while not(self._map.contains((x,y))):
                 x = (x_max - x_min) * random.rand() + x_min
                 y = (y_max - y_min) * random.rand() + y_min
-            '''
+            
 
             if self._map.contains((x,y)):
                 particles[i] = x , y , th
