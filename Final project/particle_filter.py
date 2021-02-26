@@ -12,7 +12,7 @@ class ParticleFilter:
     """Particle filter implementation."""
 
     def __init__(self, map_object: Map, sensors: List[Tuple[float, float, float]],
-                 sensor_range: float, particle_count: int = 700, sense_noise: float = 0.5*3,
+                 sensor_range: float, particle_count: int = 800, sense_noise: float = 0.5*3,
                  v_noise: float = 0.05*3, w_noise: float = 0.05*3, figure_size: Tuple[float, float] = (7, 7)):
         """Particle filter class initializer.
 
@@ -38,6 +38,8 @@ class ParticleFilter:
         self._particles = self._init_particles(particle_count)
         self._ds, self._phi = self._init_sensor_polar_coordinates(sensors)
         self._figure, self._axes = plt.subplots(1, 1, figsize=figure_size)
+
+        self.centroid = (0.0,0.0,0.0)
 
     def move(self, v: float, w: float, dt: float):
         """Performs a motion update on the particles.
@@ -110,6 +112,8 @@ class ParticleFilter:
 
         self._particles = np.array(new_particles)
 
+        self.cluster_centroid()
+
         return
 
     def plot(self, axes, orientation: bool = True):
@@ -124,9 +128,13 @@ class ParticleFilter:
 
         """
         if orientation:
-            dx = [math.cos(particle[2]) for particle in self._particles]
-            dy = [math.sin(particle[2]) for particle in self._particles]
-            axes.quiver(self._particles[:, 0], self._particles[:, 1], dx, dy, color='b', scale=15, scale_units='inches')
+            #dx = [math.cos(particle[2]) for particle in self._particles]
+            #dy = [math.sin(particle[2]) for particle in self._particles]
+            #axes.quiver(self._particles[:, 0], self._particles[:, 1], dx, dy, color='b', scale=15, scale_units='inches')
+            
+    
+            
+            axes.quiver(self.centroid[0], self.centroid[1], math.cos(self.centroid[2]), math.sin(self.centroid[2]), color='r',scale=7, scale_units='inches')
         else:
             axes.plot(self._particles[:, 0], self._particles[:, 1], 'bo', markersize=1)
 
@@ -165,6 +173,27 @@ class ParticleFilter:
             file_name = str(self._iteration).zfill(4) + ' ' + title.lower() + '.png'
             file_path = os.path.join(save_dir, file_name)
             figure.savefig(file_path)
+
+    def cluster_centroid(self):
+
+        x_centroid = 0
+        y_centroid = 0
+        th_centroid = 0
+
+        for j in range(len(self._particles)):
+            x_particle, y_particle, th_particle = self._particles[j]
+            x_centroid += x_particle
+            y_centroid += y_particle
+            th_centroid += (th_particle)
+        
+        x_centroid = x_centroid/len(self._particles)
+        y_centroid = y_centroid/len(self._particles)
+        th_centroid = (th_centroid/len(self._particles))
+
+        self.centroid = x_centroid,y_centroid,th_centroid
+
+        return
+
 
     def _init_particles(self, particle_count: int) -> np.ndarray:
         """Draws N random valid particles.

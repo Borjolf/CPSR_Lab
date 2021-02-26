@@ -1,6 +1,6 @@
-import math
+import math 
 import os
-import sim
+import sim 
 import time
 
 from robot_p3dx import RobotP3DX
@@ -90,7 +90,7 @@ if __name__ == '__main__':
                 sense = time.time() - start
 
                 start = time.time()
-                pf.show('Sense', save_figure=True)
+                pf.show('Sense', save_figure=False)
                 plot_sense = time.time() - start
                 count = 0
             #######################################
