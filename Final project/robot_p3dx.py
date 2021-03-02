@@ -119,7 +119,7 @@ class RobotP3DX(Robot):
         for i in range(len(sensors)):
             sensor_name = "Pioneer_p3dx_ultrasonicSensor" + str(i+1)
             rc , handle = sim.simxGetObjectHandle ( self._client_id , sensor_name , sim.simx_opmode_blocking )
-            sensors[i] = handle;
+            sensors[i] = handle
             sim.simxReadProximitySensor ( self._client_id , sensors[i] , sim.simx_opmode_streaming );
         
         return sensors
@@ -139,7 +139,7 @@ class RobotP3DX(Robot):
         wr = th_r / self._dt
         wl = th_l / self._dt
 
-        z_v = ((wr + wl) * self.WHEEL_RADIUS) / 2
+        z_v = ((wr + wl) * self.WHEEL_RADIUS) / 2.0
 
         z_w = ((wr - wl) * self.WHEEL_RADIUS) / self.TRACK
 

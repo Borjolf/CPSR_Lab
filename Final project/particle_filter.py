@@ -12,8 +12,8 @@ class ParticleFilter:
     """Particle filter implementation."""
 
     def __init__(self, map_object: Map, sensors: List[Tuple[float, float, float]],
-                 sensor_range: float, particle_count: int = 800, sense_noise: float = 0.5*3,
-                 v_noise: float = 0.05*3, w_noise: float = 0.05*3, figure_size: Tuple[float, float] = (7, 7)):
+                 sensor_range: float, particle_count: int = 1100, sense_noise: float = 0.5*2.5,
+                 v_noise: float = 0.05*3.75, w_noise: float = 0.05*3.75, figure_size: Tuple[float, float] = (7, 7)):
         """Particle filter class initializer.
 
         Args:
@@ -57,9 +57,10 @@ class ParticleFilter:
             wn = w + random.normal(0, self._w_noise, None)
 
             x1 , y1 , th1 = self._particles[i]
-            x2 = (dt * vn * math.cos(th1)) + x1
-            y2 = (dt * vn * math.sin(th1)) + y1 
             th2 = (dt * wn) + th1
+            x2 = (dt * vn * math.cos((th1+th2)/2.0)) + x1
+            y2 = (dt * vn * math.sin((th1+th2)/2.0)) + y1 
+            
 
             if th2 >= 2*math.pi:
                 th2 -= 2*math.pi
@@ -128,9 +129,9 @@ class ParticleFilter:
 
         """
         if orientation:
-            #dx = [math.cos(particle[2]) for particle in self._particles]
-            #dy = [math.sin(particle[2]) for particle in self._particles]
-            #axes.quiver(self._particles[:, 0], self._particles[:, 1], dx, dy, color='b', scale=15, scale_units='inches')
+            dx = [math.cos(particle[2]) for particle in self._particles]
+            dy = [math.sin(particle[2]) for particle in self._particles]
+            axes.quiver(self._particles[:, 0], self._particles[:, 1], dx, dy, color='b', scale=15, scale_units='inches')
             
     
             
@@ -184,13 +185,13 @@ class ParticleFilter:
             x_particle, y_particle, th_particle = self._particles[j]
             x_centroid += x_particle
             y_centroid += y_particle
-            th_centroid += (th_particle)
+            #th_centroid += (th_particle)
         
         x_centroid = x_centroid/len(self._particles)
         y_centroid = y_centroid/len(self._particles)
-        th_centroid = (th_centroid/len(self._particles))
+        #th_centroid = (th_centroid/len(self._particles))
 
-        self.centroid = x_centroid,y_centroid,th_centroid
+        self.centroid = x_centroid,y_centroid,self._particles[0][2]
 
         return
 

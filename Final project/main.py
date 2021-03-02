@@ -43,7 +43,7 @@ if __name__ == '__main__':
     sim.simxStartSimulation(client_id, sim.simx_opmode_blocking)
 
     # Initial and final locations
-    start = (2, -3, -math.pi/2)
+    start = (4, 0, 0*math.pi/2)
     goal = (2, 2)
 
     # Create the robot
@@ -63,28 +63,24 @@ if __name__ == '__main__':
     start_time = time.time()
 
     #particle filter
-    import time
     m = Map('map_project.json', sensor_range=robot.SENSOR_RANGE, compiled_intersect=True, use_regions=True)
     pf = ParticleFilter(m, robot.SENSORS[:16], robot.SENSOR_RANGE)
     count = 0
+    z_us, z_v, z_w = robot.sense()
 
     try:
         while not goal_reached(robot_handle, goal, localized):
             # Write your control algorithm here
+            v, w = navigation.explore(z_us, z_v, z_w)
+            robot.move(v, w)
             z_us, z_v, z_w = robot.sense()
-            
-
-            #start = time.time()
             pf.move(z_v, z_w, dt)
-            #move = time.time() - start
-            #start = time.time()
-            #pf.show('Move', save_figure=True)
-            #plot_move = time.time() - start
-
             
+
             
             ##################################PARTICLE FILTER RESAMPLE
-            if count >= 15:
+            if count >= 25:
+                #robot.move(0,0)
                 start = time.time()
                 pf.resample(z_us)
                 sense = time.time() - start
@@ -93,10 +89,10 @@ if __name__ == '__main__':
                 pf.show('Sense', save_figure=False)
                 plot_sense = time.time() - start
                 count = 0
+                #robot.move(v,w)
             #######################################
 
-            v, w = navigation.explore(z_us, z_v, z_w)
-            robot.move(v, w)
+            
 
             # Execute the next simulation step
             sim.simxSynchronousTrigger(client_id)

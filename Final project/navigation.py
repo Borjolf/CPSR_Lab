@@ -5,7 +5,7 @@ import numpy as np
 class Navigation:
     """Class for short-term path planning."""
 
-    estado = 0
+    estado = 11
 
     def __init__(self, dt: float):
         """Navigation class initializer.
@@ -50,6 +50,17 @@ class Navigation:
         if self.estado == 0:
             error_angulo = z_us[7] - z_us[8]
             error_distancia = (z_us[7] + z_us[8]) / 2.0 - 0.35
+            '''
+            if error_angulo > 10.0:
+                error_angulo = 10.0
+            elif error_angulo < -10.0:
+                error_angulo = -10.0
+            if error_distancia > 10.0:
+                error_distancia = 10.0
+            elif error_distancia < -10.0:
+                error_distancia = -10.0
+                
+            '''
             w = -kpa * error_angulo - kpd * error_distancia
             v = 0.95
             
