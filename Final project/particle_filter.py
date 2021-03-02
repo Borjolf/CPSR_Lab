@@ -12,8 +12,8 @@ class ParticleFilter:
     """Particle filter implementation."""
 
     def __init__(self, map_object: Map, sensors: List[Tuple[float, float, float]],
-                 sensor_range: float, particle_count: int = 1100, sense_noise: float = 0.5*2.5,
-                 v_noise: float = 0.05*3.75, w_noise: float = 0.05*3.75, figure_size: Tuple[float, float] = (7, 7)):
+                 sensor_range: float, particle_count: int = 1100, sense_noise: float = 0.5*3,
+                 v_noise: float = 0.05*3, w_noise: float = 0.05*3, figure_size: Tuple[float, float] = (7, 7)):
         """Particle filter class initializer.
 
         Args:
@@ -34,6 +34,7 @@ class ParticleFilter:
         self._v_noise = v_noise
         self._w_noise = w_noise
         self._iteration = 0
+        self.localized = False
 
         self._particles = self._init_particles(particle_count)
         self._ds, self._phi = self._init_sensor_polar_coordinates(sensors)
@@ -80,6 +81,31 @@ class ParticleFilter:
         # TODO: Complete with your code.
         pass
 
+
+    def _center_found(self, threshold: float = 0.4 ):
+
+        flag = 0
+
+        for j in range(len(self._particles)):
+
+            x_particle, y_particle, _ = self._particles[j]
+            x_centroid, y_centroid, _ = self.centroid
+
+            distance_x = abs(x_particle - x_centroid)
+            distance_y = abs(y_particle - y_centroid)
+
+            if distance_x > threshold and distance_y > threshold and flag == 0:
+                flag = 1
+
+        if flag == 0:
+            self.localized = True
+            print("Localized!")
+      
+        return
+        
+           
+
+
     def resample(self, measurements: List[float]):
         """Samples a new set of set of particles using the resampling wheel method.
 
@@ -113,7 +139,20 @@ class ParticleFilter:
 
         self._particles = np.array(new_particles)
 
-        self.cluster_centroid()
+        localized_ant = self.localized
+
+        self.cluster_centroid() #calculate centroid, and in that method we check if we have converged already
+        '''
+        if localized_ant != self.localized: #reduce to 3 particles only and change noises
+            reduced_particles = []
+            for k in range(15):
+                #reduced_particles.append(new_particles[k])
+                reduced_particles.append(self.centroid)
+            self._particles = np.array(reduced_particles)
+            self._sense_noise = self._sense_noise * 3.0
+            self._v_noise = self._v_noise *3.0
+            self._w_noise = self._w_noise *3.0
+        '''
 
         return
 
@@ -193,6 +232,10 @@ class ParticleFilter:
 
         self.centroid = x_centroid,y_centroid,self._particles[0][2]
 
+        self._center_found()
+
+
+
         return
 
 
@@ -210,21 +253,25 @@ class ParticleFilter:
         """
         particles = np.zeros((particle_count, 3), dtype=object)
 
-        x_min, y_min, x_max, y_max = self._map.bounds()
+        #x_min, y_min, x_max, y_max = self._map.bounds()
 
         for i in range(len(particles)):
-            x = (x_max - x_min) * random.rand() + x_min
-            y = (y_max - y_min) * random.rand() + y_min
+            #x = (x_max - x_min) * random.rand() + x_min
+            #y = (y_max - y_min) * random.rand() + y_min
+            x = random.choice([-4,-3,-2,-1,0,1,2,3,4])
+            y = random.choice([-4,-3,-2,-1,0,1,2,3,4])
             th = random.choice([0, math.pi/2, math.pi, 3*math.pi/2])
 
             
             while not(self._map.contains((x,y))):
-                x = (x_max - x_min) * random.rand() + x_min
-                y = (y_max - y_min) * random.rand() + y_min
+                #x = (x_max - x_min) * random.rand() + x_min
+                #y = (y_max - y_min) * random.rand() + y_min
+                x = random.choice([-4,-3,-2,-1,0,1,2,3,4])
+                y = random.choice([-4,-3,-2,-1,0,1,2,3,4])
             
 
-            if self._map.contains((x,y)):
-                particles[i] = x , y , th
+            #if self._map.contains((x,y)):
+            particles[i] = x , y , th
 
         return particles
 
@@ -347,6 +394,7 @@ class ParticleFilter:
             rays.append([(xs, ys), (x_end, y_end)])
 
         return rays
+
 
 
 def test():
