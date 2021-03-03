@@ -62,7 +62,7 @@ class Navigation:
                 
             '''
             w = -kpa * error_angulo - kpd * error_distancia
-            v = 0.95
+            v = 1.0
             
             if z_us[7] >= 0.8:
                 self.estado = 21
@@ -70,32 +70,32 @@ class Navigation:
             elif media_delanteros <= 0.75 and z_us[7] < 2:
                 self.estado = 11
         
-        if self.estado == 11:
+        elif self.estado == 11:
             w = 1.8
             v = 0
             if media_delanteros > 2:
                 self.estado = 12
 
-        if self.estado == 12:
+        elif self.estado == 12:
             w = 0.5
             v = 0
             if -0.01 < (z_us[7] - z_us[8]) and z_us[7] - z_us[8] < 0.005:
                 self.estado = 0
 
-        if self.estado == 21:
+        elif self.estado == 21:
             w = -3.5
             v = 0
             if  z_us[7] < 0.8:
                 self.estado = 22
                 #self.t3 = time.time()
 
-        if self.estado == 22:
+        elif self.estado == 22:
             w = -0.7
             v = 0
             if z_us[7] > 2.0:
                 self.estado = 3
 
-        if self.estado == 3:
+        elif self.estado == 3:
             w = 0
             v = 0.5
             if  z_us[7] < 0.8:

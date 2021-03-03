@@ -43,7 +43,7 @@ if __name__ == '__main__':
     sim.simxStartSimulation(client_id, sim.simx_opmode_blocking)
 
     # Initial and final locations
-    start = (4, 0, 0*math.pi/2)
+    start = (2, -3, 0*math.pi/2)
     goal = (2, 2)
 
     # Create the robot
@@ -77,29 +77,36 @@ if __name__ == '__main__':
 
     try:
         while not goal_reached(robot_handle, goal, localized):
-            # Write your control algorithm here
             v, w = navigation.explore(z_us, z_v, z_w)
             robot.move(v, w)
             z_us, z_v, z_w = robot.sense()
-            pf.move(z_v, z_w, dt)
+            pf.move(z_v, z_w, dt)            
             
 
-            
-            ##################################PARTICLE FILTER RESAMPLE
-            if count >= 25:
-                #robot.move(0,0)
-                start = time.time()
-                pf.resample(z_us)
-                sense = time.time() - start
+            if not pf.localized:
+                if count >= 25:
+                    robot.move(0,0)
+                    start = time.time()
+                    pf.resample(z_us)
+                    sense = time.time() - start
 
-                start = time.time()
-                pf.show('Sense', save_figure=False)
-                plot_sense = time.time() - start
-                count = 0
-                #robot.move(v,w)
-            #######################################
+                    start = time.time()
+                    pf.show('Sense', save_figure=False)
+                    plot_sense = time.time() - start
+                    count = 0
+                    #robot.move(v,w)
+            else:
+                if count >= 5:
+                    robot.move(0,0)
+                    start = time.time()
+                    pf.resample(z_us)
+                    sense = time.time() - start
 
-            
+                    start = time.time()
+                    pf.show('Sense', save_figure=False)
+                    plot_sense = time.time() - start
+                    count = 0
+                    #robot.move(v,w)
 
             # Execute the next simulation step
             sim.simxSynchronousTrigger(client_id)

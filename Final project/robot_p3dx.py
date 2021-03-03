@@ -52,8 +52,8 @@ class RobotP3DX(Robot):
             w: Angular velocity of the robot center [rad/s].
 
         """
-        wr = (v + w* self.TRACK / 2 ) / self.WHEEL_RADIUS
-        wl = (v - w* self.TRACK / 2 ) / self.WHEEL_RADIUS
+        wr = (v + w* self.TRACK / 2.0 ) / self.WHEEL_RADIUS
+        wl = (v - w* self.TRACK / 2.0 ) / self.WHEEL_RADIUS
         
         rc = sim.simxSetJointTargetVelocity ( self._client_id, self._motors['right'] , wr , sim.simx_opmode_oneshot )
         rc = sim.simxSetJointTargetVelocity ( self._client_id, self._motors['left'] , wl , sim.simx_opmode_oneshot )
@@ -120,7 +120,7 @@ class RobotP3DX(Robot):
             sensor_name = "Pioneer_p3dx_ultrasonicSensor" + str(i+1)
             rc , handle = sim.simxGetObjectHandle ( self._client_id , sensor_name , sim.simx_opmode_blocking )
             sensors[i] = handle
-            sim.simxReadProximitySensor ( self._client_id , sensors[i] , sim.simx_opmode_streaming );
+            sim.simxReadProximitySensor ( self._client_id , sensors[i] , sim.simx_opmode_streaming )
         
         return sensors
 

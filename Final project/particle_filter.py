@@ -12,8 +12,8 @@ class ParticleFilter:
     """Particle filter implementation."""
 
     def __init__(self, map_object: Map, sensors: List[Tuple[float, float, float]],
-                 sensor_range: float, particle_count: int = 1100, sense_noise: float = 0.5*3,
-                 v_noise: float = 0.05*3, w_noise: float = 0.05*3, figure_size: Tuple[float, float] = (7, 7)):
+                 sensor_range: float, particle_count: int = 1100, sense_noise: float = 0.5*1.5,
+                 v_noise: float = 0.05*10, w_noise: float = 0.05*10, figure_size: Tuple[float, float] = (7, 7)):
         """Particle filter class initializer.
 
         Args:
@@ -59,14 +59,12 @@ class ParticleFilter:
 
             x1 , y1 , th1 = self._particles[i]
             th2 = (dt * wn) + th1
-            x2 = (dt * vn * math.cos((th1+th2)/2.0)) + x1
-            y2 = (dt * vn * math.sin((th1+th2)/2.0)) + y1 
-            
-
             if th2 >= 2*math.pi:
                 th2 -= 2*math.pi
             elif th2 < 0:
                 th2 += 2*math.pi
+            x2 = (dt * vn * math.cos((th1+th2)/2.0)) + x1
+            y2 = (dt * vn * math.sin((th1+th2)/2.0)) + y1 
 
             segment = [ (x1,y1) , (x2,y2) ]
 
@@ -78,8 +76,7 @@ class ParticleFilter:
 
             self._particles[i] = x2 , y2 , th2
 
-        # TODO: Complete with your code.
-        pass
+        return
 
 
     def _center_found(self, threshold: float = 0.4 ):
@@ -99,7 +96,6 @@ class ParticleFilter:
 
         if flag == 0:
             self.localized = True
-            print("Localized!")
       
         return
         
@@ -142,17 +138,17 @@ class ParticleFilter:
         localized_ant = self.localized
 
         self.cluster_centroid() #calculate centroid, and in that method we check if we have converged already
-        '''
+        
         if localized_ant != self.localized: #reduce to 3 particles only and change noises
             reduced_particles = []
             for k in range(15):
                 #reduced_particles.append(new_particles[k])
                 reduced_particles.append(self.centroid)
             self._particles = np.array(reduced_particles)
-            self._sense_noise = self._sense_noise * 3.0
-            self._v_noise = self._v_noise *3.0
-            self._w_noise = self._w_noise *3.0
-        '''
+            self._sense_noise = self._sense_noise
+            self._v_noise = self._v_noise *1.5
+            self._w_noise = self._w_noise *1.5
+        
 
         return
 
