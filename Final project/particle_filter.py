@@ -12,7 +12,7 @@ class ParticleFilter:
     """Particle filter implementation."""
 
     def __init__(self, map_object: Map, sensors: List[Tuple[float, float, float]],
-                 sensor_range: float, particle_count: int = 1100, sense_noise: float = 0.5*1.5,
+                 sensor_range: float, particle_count: int = 1200, sense_noise: float = 0.5*1.2,
                  v_noise: float = 0.05*10, w_noise: float = 0.05*10, figure_size: Tuple[float, float] = (7, 7)):
         """Particle filter class initializer.
 
@@ -247,27 +247,23 @@ class ParticleFilter:
         Returns: A numpy array of tuples (x, y, theta).
 
         """
-        particles = np.zeros((particle_count, 3), dtype=object)
+        #particles = np.zeros((particle_count, 3), dtype=object)
+        particles = []
 
         #x_min, y_min, x_max, y_max = self._map.bounds()
+        count_x = [-4,-3,-2,-1,0,1,2,3,4]
+        count_y = [-4,-3,-2,-1,0,1,2,3,4]
+        count_th = [0, math.pi/2, math.pi, 3*math.pi/2]
 
-        for i in range(len(particles)):
-            #x = (x_max - x_min) * random.rand() + x_min
-            #y = (y_max - y_min) * random.rand() + y_min
-            x = random.choice([-4,-3,-2,-1,0,1,2,3,4])
-            y = random.choice([-4,-3,-2,-1,0,1,2,3,4])
-            th = random.choice([0, math.pi/2, math.pi, 3*math.pi/2])
+        while particle_count > 0:
+            for x in count_x:
+                for y in count_y:
+                    if self._map.contains((x,y)):
+                        for th in count_th:
+                            particles.append((x,y,th))
+                            particle_count -= 1
 
-            
-            while not(self._map.contains((x,y))):
-                #x = (x_max - x_min) * random.rand() + x_min
-                #y = (y_max - y_min) * random.rand() + y_min
-                x = random.choice([-4,-3,-2,-1,0,1,2,3,4])
-                y = random.choice([-4,-3,-2,-1,0,1,2,3,4])
-            
-
-            #if self._map.contains((x,y)):
-            particles[i] = x , y , th
+        particles = np.array(particles)
 
         return particles
 
@@ -350,12 +346,12 @@ class ParticleFilter:
 
         for i in range(len(measurements)):
             if measurements_hat[i] > 2:
-                x_hat = 2
+                x_hat = 1.5
             else:
                 x_hat = measurements_hat[i]
 
             if measurements[i] > 2:
-                x = 2
+                x = 1.5
             else:
                 x = measurements[i]
 

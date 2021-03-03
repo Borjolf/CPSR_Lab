@@ -43,7 +43,7 @@ if __name__ == '__main__':
     sim.simxStartSimulation(client_id, sim.simx_opmode_blocking)
 
     # Initial and final locations
-    start = (2, -3, 0*math.pi/2)
+    start = (-4, 3, math.pi/2)
     goal = (2, 2)
 
     # Create the robot
@@ -68,12 +68,16 @@ if __name__ == '__main__':
     count = 0
     z_us, z_v, z_w = robot.sense()
 
+    
+
     start = time.time()
     pf.resample(z_us)
     sense = time.time() - start
     start = time.time()
     pf.show('Sense', save_figure=False)
     plot_sense = time.time() - start
+
+    
 
     try:
         while not goal_reached(robot_handle, goal, localized):

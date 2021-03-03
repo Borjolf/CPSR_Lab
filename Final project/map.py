@@ -359,8 +359,8 @@ class Map:
         except:
             y = 2.0
 
-        row = int(self._YR - y)
-        col = int(x + self._XC)
+        row = max(0, int(self._YR - y))
+        col = max(0, int(x + self._XC))
 
         return row, col
 

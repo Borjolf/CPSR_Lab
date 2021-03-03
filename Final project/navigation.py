@@ -62,7 +62,7 @@ class Navigation:
                 
             '''
             w = -kpa * error_angulo - kpd * error_distancia
-            v = 1.0
+            v = 0.9
             
             if z_us[7] >= 0.8:
                 self.estado = 21
