@@ -142,7 +142,7 @@ class ParticleFilter:
         if localized_ant != self.localized: #reduce to 3 particles only and change noises
             print("localized!")
             reduced_particles = []
-            for k in range(40):
+            for k in range(60):
                 #reduced_particles.append(new_particles[k])
                 reduced_particles.append(self.centroid)
             self._particles = np.array(reduced_particles)

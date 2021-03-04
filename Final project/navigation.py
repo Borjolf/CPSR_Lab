@@ -1,7 +1,7 @@
 from typing import List, Tuple
 import time
 import numpy as np
-
+import math as math
 class Navigation:
     """Class for short-term path planning."""
 
@@ -123,3 +123,36 @@ class Navigation:
         '''
 
         return v, w
+    
+    def move_control(self,centroid: Tuple[float,float,float], goal: Tuple[float,float],z_us: List[float])-> Tuple[float, float]:
+        kpa_th = 4.5
+        kpa = 20.0 / 4.0 /4.0
+        kpd = 5.0 / 4.0
+        w = 0
+        
+        error_angulo = centroid[2] - math.atan2(goal[1]-centroid[1],goal[0]-centroid[0])
+        if error_angulo > np.pi:
+            error_angulo -= 2*np.pi
+        
+        w_th = -kpa_th * error_angulo
+
+
+        if z_us[7] < 3.0 and z_us[8] < 0.8:
+            error_angulo = z_us[7] - z_us[8]
+            error_distancia = (z_us[7] + z_us[8]) / 2.0 - 0.35
+
+            w = -kpa * error_angulo - kpd * error_distancia
+        
+        v = 0.4
+
+        w+=w_th
+
+
+        if w > 3.0:
+            w = 3
+        elif w < -3.0:
+            w = -3
+
+        
+        return v,w
+    

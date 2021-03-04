@@ -49,6 +49,9 @@ class Planning:
         start_rc = self._xy_to_rc(start)
         goal_rc = self._xy_to_rc(goal)
 
+        start = self._rc_to_xy(start_rc)
+        goal = self._rc_to_xy(goal_rc)
+
         heuristic_map = self._compute_heuristic(goal)
         open_list ={start_rc:(0,0)}
         closed_list = set()
@@ -289,6 +292,7 @@ class Planning:
             path.append(new_node)
 
         path.reverse()
+        
         return path
 
         
@@ -336,13 +340,13 @@ def test():
     """Function used to test the Planning class independently."""
     m = Map('map_project.json', sensor_range=1.0, compiled_intersect=False, use_regions=False)
 
-    start = (-4.0, -4.0)
+    start = (-3.5, -3.5)
     goal = (4.0, 4.0)
     action_costs = (1.0  , 5.0  ,  10.0 )  #stright, turn left and turn right
 
     planning = Planning(m, action_costs)
     path = planning.a_star(start, goal)
-    smoothed_path = planning.smooth_path(path, data_weight=0.15, smooth_weight=0.1)
+    smoothed_path = planning.smooth_path(path, data_weight=0.3, smooth_weight=0.1)
     planning.show(path, smoothed_path, block=True)
 
 

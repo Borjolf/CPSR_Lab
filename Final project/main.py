@@ -8,6 +8,7 @@ from navigation import Navigation
 from typing import Tuple
 from particle_filter import ParticleFilter
 from map import Map
+from planning import Planning
 
 
 def create_robot(client_id: int, x: float, y: float, theta: float):
@@ -43,7 +44,7 @@ if __name__ == '__main__':
     sim.simxStartSimulation(client_id, sim.simx_opmode_blocking)
 
     # Initial and final locations
-    start = (2, -3, math.pi/2)
+    start = (2, -3, -math.pi)
     goal = (2, 2)
 
     # Create the robot
@@ -77,6 +78,11 @@ if __name__ == '__main__':
     '''
     pf.resample(z_us)
 
+
+    #path planning
+    action_costs = (1.0  , 5.0  ,  10.0 )
+    path_followed = []
+
     
     try:
         while not goal_reached(robot_handle, goal, localized):
@@ -84,7 +90,15 @@ if __name__ == '__main__':
             if localized == False and pf.localized == True:
                 localized = True
                 print("localized at ")   
-                print(pf.centroid)         
+                print(pf.centroid)
+
+                planning = Planning(m, action_costs)
+                path = planning.a_star((pf.centroid[0],pf.centroid[1]), goal)
+                smoothed_path = planning.smooth_path(path, data_weight=0.3, smooth_weight=0.1)
+                planning.show(path, smoothed_path, block=False)
+                path_followed = smoothed_path.copy()
+                path_followed.pop(0)  #delete the start node
+                         
             
             if not localized:
                 v, w = navigation.explore(z_us, z_v, z_w)
@@ -109,7 +123,9 @@ if __name__ == '__main__':
 
 
             else:
-                v, w = navigation.explore(z_us, z_v, z_w)
+                #v, w = navigation.explore(z_us, z_v, z_w)
+                if path_followed:
+                    v, w = navigation.move_control(pf.centroid, path_followed[0], z_us)
                 robot.move(v, w)
                 z_us, z_v, z_w = robot.sense()
                 pf.move(z_v, z_w, dt)
@@ -127,6 +143,15 @@ if __name__ == '__main__':
                     '''
                     pf.resample(z_us)
                     resample_count = 0
+
+
+                    if (path_followed):
+                        distance = math.sqrt((pf.centroid[0] - path_followed[0][0]) ** 2 + (pf.centroid[1] - path_followed[0][1]) ** 2)
+                        if distance <= 0.15:
+                            del path_followed[0]
+                            print("nodo alcanzado")
+                    
+
                     #robot.move(v,w)
 
             # Execute the next simulation step
@@ -138,6 +163,8 @@ if __name__ == '__main__':
 
     except KeyboardInterrupt:  # Press Ctrl+C to break the infinite loop and gracefully stop the simulation
         pass
+
+    robot.move(0,0)
 
     # Display time statistics
     execution_time = time.time() - start_time
