@@ -44,8 +44,8 @@ if __name__ == '__main__':
     sim.simxStartSimulation(client_id, sim.simx_opmode_blocking)
 
     # Initial and final locations
-    start = (2, -3, -math.pi)
-    goal = (2, 2)
+    start = (-3, 0, math.pi/2)
+    goal = (4, -4)
 
     # Create the robot
     _, robot_handle = create_robot(client_id, start[0], start[1], start[2])
@@ -80,7 +80,7 @@ if __name__ == '__main__':
 
 
     #path planning
-    action_costs = (1.0  , 5.0  ,  10.0 )
+    action_costs = (1.0  , 10.0  ,  10.0 )
     path_followed = []
 
     
@@ -95,7 +95,7 @@ if __name__ == '__main__':
                 planning = Planning(m, action_costs)
                 path = planning.a_star((pf.centroid[0],pf.centroid[1]), goal)
                 smoothed_path = planning.smooth_path(path, data_weight=0.3, smooth_weight=0.1)
-                planning.show(path, smoothed_path, block=False)
+                #planning.show(path, smoothed_path, block=False)
                 path_followed = smoothed_path.copy()
                 path_followed.pop(0)  #delete the start node
                          
@@ -118,6 +118,7 @@ if __name__ == '__main__':
                     plot_sense = time.time() - start
                     '''
                     pf.resample(z_us)
+                    #pf.show('Sense', save_figure=False)
                     resample_count = 0
                     #robot.move(v,w)
 
@@ -130,26 +131,28 @@ if __name__ == '__main__':
                 z_us, z_v, z_w = robot.sense()
                 pf.move(z_v, z_w, dt)
 
-                if resample_count >= 2:
-                    #robot.move(0,0)
-                    '''
-                    start = time.time()
-                    pf.resample(z_us)
-                    sense = time.time() - start
+                #if resample_count >= 1:
+                #robot.move(0,0)
+                '''
+                start = time.time()
+                pf.resample(z_us)
+                sense = time.time() - start
 
-                    start = time.time()
-                    pf.show('Sense', save_figure=False)
-                    plot_sense = time.time() - start
-                    '''
-                    pf.resample(z_us)
-                    resample_count = 0
+                start = time.time()
+                pf.show('Sense', save_figure=False)
+                plot_sense = time.time() - start
+                '''
+                pf.resample(z_us)
+                #resample_count = 0
 
 
-                    if (path_followed):
-                        distance = math.sqrt((pf.centroid[0] - path_followed[0][0]) ** 2 + (pf.centroid[1] - path_followed[0][1]) ** 2)
-                        if distance <= 0.15:
-                            del path_followed[0]
-                            print("nodo alcanzado")
+                if (path_followed):
+                    distance = math.sqrt((pf.centroid[0] - path_followed[0][0]) ** 2 + (pf.centroid[1] - path_followed[0][1]) ** 2)
+                    if distance <= 0.2:
+                        del path_followed[0]
+                        #print("nodo alcanzado")
+                        #if path_followed:
+                            #planning.show(path_followed, block=False)
                     
 
                     #robot.move(v,w)

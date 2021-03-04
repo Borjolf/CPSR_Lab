@@ -12,7 +12,7 @@ class ParticleFilter:
     """Particle filter implementation."""
 
     def __init__(self, map_object: Map, sensors: List[Tuple[float, float, float]],
-                 sensor_range: float, particle_count: int = 1200, sense_noise: float = 0.5*1.2,
+                 sensor_range: float, particle_count: int = 1400, sense_noise: float = 0.5*1.4,
                  v_noise: float = 0.05*10, w_noise: float = 0.05*10, figure_size: Tuple[float, float] = (7, 7)):
         """Particle filter class initializer.
 
@@ -79,9 +79,9 @@ class ParticleFilter:
         return
 
 
-    def _center_found(self, threshold: float = 0.4 ):
+    def _center_found(self, threshold: float = 0.6 ):
 
-        flag = 0
+        flag = False
 
         for j in range(len(self._particles)):
 
@@ -91,10 +91,10 @@ class ParticleFilter:
             distance_x = abs(x_particle - x_centroid)
             distance_y = abs(y_particle - y_centroid)
 
-            if distance_x > threshold and distance_y > threshold and flag == 0:
-                flag = 1
+            if distance_x > threshold and distance_y > threshold and flag == False:
+                flag = True
 
-        if flag == 0:
+        if flag == False:
             self.localized = True
       
         return
@@ -142,13 +142,13 @@ class ParticleFilter:
         if localized_ant != self.localized: #reduce to 3 particles only and change noises
             print("localized!")
             reduced_particles = []
-            for k in range(60):
+            for k in range(40):
                 #reduced_particles.append(new_particles[k])
                 reduced_particles.append(self.centroid)
             self._particles = np.array(reduced_particles)
             self._sense_noise = self._sense_noise
-            self._v_noise = self._v_noise *1.5
-            self._w_noise = self._w_noise *1.5
+            self._v_noise = self._v_noise 
+            self._w_noise = self._w_noise
         
 
         return

@@ -83,14 +83,14 @@ class Navigation:
                 self.estado = 0
 
         elif self.estado == 21:
-            w = -3.5
+            w = -2.5
             v = 0
             if  z_us[7] < 0.8:
                 self.estado = 22
                 #self.t3 = time.time()
 
         elif self.estado == 22:
-            w = -0.7
+            w = -0.5
             v = 0
             if z_us[7] > 2.0:
                 self.estado = 3
@@ -98,7 +98,7 @@ class Navigation:
         elif self.estado == 3:
             w = 0
             v = 0.5
-            if  z_us[7] < 0.8:
+            if  z_us[7] < 0.9:
                 self.estado = 0
         
         
@@ -125,9 +125,9 @@ class Navigation:
         return v, w
     
     def move_control(self,centroid: Tuple[float,float,float], goal: Tuple[float,float],z_us: List[float])-> Tuple[float, float]:
-        kpa_th = 4.5
-        kpa = 20.0 / 4.0 /4.0
-        kpd = 5.0 / 4.0
+        kpa_th = 1.8
+        kpa = 2.0
+        kpd = 1.0
         w = 0
         
         error_angulo = centroid[2] - math.atan2(goal[1]-centroid[1],goal[0]-centroid[0])
@@ -137,21 +137,29 @@ class Navigation:
         w_th = -kpa_th * error_angulo
 
 
-        if z_us[7] < 3.0 and z_us[8] < 0.8:
-            error_angulo = z_us[7] - z_us[8]
+        if z_us[7] < 0.8 and z_us[8] < 0.8:
+            error_angulo_p = z_us[7] - z_us[8]
             error_distancia = (z_us[7] + z_us[8]) / 2.0 - 0.35
 
-            w = -kpa * error_angulo - kpd * error_distancia
+            w = -kpa * error_angulo_p - kpd * error_distancia
         
-        v = 0.4
+        
 
         w+=w_th
 
+        w_limit = 2.2
 
-        if w > 3.0:
-            w = 3
-        elif w < -3.0:
-            w = -3
+
+        if w > w_limit:
+            w = w_limit
+        elif w < -w_limit:
+            w = -w_limit
+
+
+        if(abs(error_angulo)) > math.pi/6.0:
+            v = 0.0
+        else:
+            v = 0.8
 
         
         return v,w
