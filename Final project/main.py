@@ -43,7 +43,7 @@ if __name__ == '__main__':
     sim.simxStartSimulation(client_id, sim.simx_opmode_blocking)
 
     # Initial and final locations
-    start = (-4, 3, math.pi/2)
+    start = (2, -3, math.pi/2)
     goal = (2, 2)
 
     # Create the robot
@@ -65,31 +65,36 @@ if __name__ == '__main__':
     #particle filter
     m = Map('map_project.json', sensor_range=robot.SENSOR_RANGE, compiled_intersect=True, use_regions=True)
     pf = ParticleFilter(m, robot.SENSORS[:16], robot.SENSOR_RANGE)
-    count = 0
+    resample_count = 0
     z_us, z_v, z_w = robot.sense()
-
-    
-
+    '''
     start = time.time()
     pf.resample(z_us)
     sense = time.time() - start
     start = time.time()
     pf.show('Sense', save_figure=False)
     plot_sense = time.time() - start
+    '''
+    pf.resample(z_us)
 
     
-
     try:
         while not goal_reached(robot_handle, goal, localized):
-            v, w = navigation.explore(z_us, z_v, z_w)
-            robot.move(v, w)
-            z_us, z_v, z_w = robot.sense()
-            pf.move(z_v, z_w, dt)            
             
+            if localized == False and pf.localized == True:
+                localized = True
+                print("localized at ")   
+                print(pf.centroid)         
+            
+            if not localized:
+                v, w = navigation.explore(z_us, z_v, z_w)
+                robot.move(v, w)
+                z_us, z_v, z_w = robot.sense()
+                pf.move(z_v, z_w, dt)
 
-            if not pf.localized:
-                if count >= 25:
-                    robot.move(0,0)
+                if resample_count >= 25:
+                    #robot.move(0,0)
+                    '''
                     start = time.time()
                     pf.resample(z_us)
                     sense = time.time() - start
@@ -97,11 +102,21 @@ if __name__ == '__main__':
                     start = time.time()
                     pf.show('Sense', save_figure=False)
                     plot_sense = time.time() - start
-                    count = 0
+                    '''
+                    pf.resample(z_us)
+                    resample_count = 0
                     #robot.move(v,w)
+
+
             else:
-                if count >= 5:
-                    robot.move(0,0)
+                v, w = navigation.explore(z_us, z_v, z_w)
+                robot.move(v, w)
+                z_us, z_v, z_w = robot.sense()
+                pf.move(z_v, z_w, dt)
+
+                if resample_count >= 2:
+                    #robot.move(0,0)
+                    '''
                     start = time.time()
                     pf.resample(z_us)
                     sense = time.time() - start
@@ -109,7 +124,9 @@ if __name__ == '__main__':
                     start = time.time()
                     pf.show('Sense', save_figure=False)
                     plot_sense = time.time() - start
-                    count = 0
+                    '''
+                    pf.resample(z_us)
+                    resample_count = 0
                     #robot.move(v,w)
 
             # Execute the next simulation step
@@ -117,7 +134,7 @@ if __name__ == '__main__':
             sim.simxGetPingTime(client_id)  # Make sure the simulation step has finished
             steps += 1
             
-            count +=1
+            resample_count +=1
 
     except KeyboardInterrupt:  # Press Ctrl+C to break the infinite loop and gracefully stop the simulation
         pass
