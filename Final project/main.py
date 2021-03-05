@@ -44,7 +44,7 @@ if __name__ == '__main__':
     sim.simxStartSimulation(client_id, sim.simx_opmode_blocking)
 
     # Initial and final locations
-    start = (-3, 0, math.pi/2)
+    start = (0, 1, math.pi/2)
     goal = (4, -4)
 
     # Create the robot
@@ -59,15 +59,14 @@ if __name__ == '__main__':
     dt = 0.05
     steps = 0
     robot = RobotP3DX(client_id, dt)
-    navigation = Navigation(dt)
+    z_us, z_v, z_w = robot.sense()
+    navigation = Navigation(dt, z_us)
     localized = False
-    start_time = time.time()
-
+    
     #particle filter
     m = Map('map_project.json', sensor_range=robot.SENSOR_RANGE, compiled_intersect=True, use_regions=True)
     pf = ParticleFilter(m, robot.SENSORS[:16], robot.SENSOR_RANGE)
     resample_count = 0
-    z_us, z_v, z_w = robot.sense()
     pf.resample(z_us)
 
 
@@ -76,21 +75,22 @@ if __name__ == '__main__':
     path_followed = [] #this will be the path with the nodes left to reach (when we reach a node, we delete it)
     distance_tolerance = 0.2  #if we are closer to the next node than this distance, we will consider it has been reached
 
-    
+    start_time = time.time()
+
     try:
         while not goal_reached(robot_handle, goal, localized):
             
             if localized == False and pf.localized == True:
                 #we enter here only when we pass from non-localized to localized
                 localized = True  #set the flag
-                print("localized at ")   
-                print(pf.centroid)
 
                 #and create the path
                 planning = Planning(m, action_costs)
                 path = planning.a_star((pf.centroid[0],pf.centroid[1]), goal)
                 smoothed_path = planning.smooth_path(path, data_weight=0.3, smooth_weight=0.1)
                 path_followed = smoothed_path.copy()  
+                print("localized at ")   
+                print(path_followed[0])
                 path_followed.pop(0)                     #delete the start node, as it has been already reached
                          
             
@@ -104,6 +104,8 @@ if __name__ == '__main__':
                 if resample_count >= 25: #we only resample every 25 steps, so more info is gathered and less time is lost
                     pf.resample(z_us)
                     resample_count = 0
+
+                    pf.show('Sense', save_figure=False)
 
 
             else:

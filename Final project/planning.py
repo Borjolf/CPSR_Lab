@@ -283,24 +283,28 @@ class Planning:
         Returns: Path to the goal (start location first) in (x, y) format.
 
         """
-        
-        ancestors_xy = {}
+        if goal == start:
+            path = []
+            path.append(goal)
+        else:
 
-        for node,ancestor in ancestors.items():
-            node_xy = self._rc_to_xy(node)
-            ancestor_xy = self._rc_to_xy(ancestor)
-            ancestors_xy[node_xy] = ancestor_xy
-            
-        path = []
-        path.append(goal)
+            ancestors_xy = {}
 
-        new_node = ancestors_xy[goal]
+            for node,ancestor in ancestors.items():
+                node_xy = self._rc_to_xy(node)
+                ancestor_xy = self._rc_to_xy(ancestor)
+                ancestors_xy[node_xy] = ancestor_xy
+                
+            path = []
+            path.append(goal)
 
-        while new_node != start:
-            new_node = ancestors_xy[path[len(path)-1]]
-            path.append(new_node)
+            new_node = ancestors_xy[goal]
 
-        path.reverse()
+            while new_node != start:
+                new_node = ancestors_xy[path[len(path)-1]]
+                path.append(new_node)
+
+            path.reverse()
         
         return path
 

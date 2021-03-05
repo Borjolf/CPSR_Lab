@@ -5,19 +5,22 @@ import math as math
 class Navigation:
     """Class for short-term path planning."""
 
-    estado = 11
-
-    def __init__(self, dt: float):
+    def __init__(self, dt: float, z_us:List[float]):
         """Navigation class initializer.
 
         Args:
             dt: Sampling period [s].
+            z_us: distances sensed so we can determine the first state
 
         """
 
+        if z_us[7] < 0.9 and z_us[8] < 0.9:
+            self.estado = 0
+        elif z_us[3] < 0.6 and z_us[4] < 0.6:
+            self.estado = 11
+        else:
+            self.estado = 4
 
-
-        pass
 
     def explore(self, z_us: List[float], z_v: float, z_w: float) -> Tuple[float, float]:
         """Wall following exploration algorithm.
@@ -45,6 +48,8 @@ class Navigation:
         21: girar hacia la derecha 1
         22: girar hacia la derecha 2
         3: avanzar un poco tras girar a la derecha
+
+        4: estado solo accesible al iniciar, si no detectamos pared a la derecha ni en frente
         '''
 
         if self.estado == 0:
@@ -56,7 +61,6 @@ class Navigation:
             
             if z_us[7] >= 0.8:
                 self.estado = 21
-                self.t2 = time.time()
             elif media_delanteros <= 0.75 and z_us[7] < 2:
                 self.estado = 11
         
@@ -89,6 +93,18 @@ class Navigation:
             v = 0.5
             if  z_us[7] < 0.9:
                 self.estado = 0
+            elif media_delanteros < 0.1:
+                self.estado = 11
+
+        elif self.estado == 4:
+            w = 0
+            v = 0.85
+            if  z_us[7] <= 0.95:
+                self.estado = 0
+            elif media_delanteros <= 0.6:
+                self.estado = 11
+
+        print(self.estado)
 
         return v, w
     
@@ -143,7 +159,7 @@ class Navigation:
         if(abs(error_angulo)) > math.pi/6.0:
             v = 0.0
         else:
-            v = 0.8
+            v = 0.85
 
         return v,w
     

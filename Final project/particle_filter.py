@@ -124,7 +124,6 @@ class ParticleFilter:
         return
         
            
-
     def resample(self, measurements: List[float]):
         """Samples a new set of set of particles using the resampling wheel method.
 
