@@ -68,94 +68,58 @@ if __name__ == '__main__':
     pf = ParticleFilter(m, robot.SENSORS[:16], robot.SENSOR_RANGE)
     resample_count = 0
     z_us, z_v, z_w = robot.sense()
-    '''
-    start = time.time()
-    pf.resample(z_us)
-    sense = time.time() - start
-    start = time.time()
-    pf.show('Sense', save_figure=False)
-    plot_sense = time.time() - start
-    '''
     pf.resample(z_us)
 
 
     #path planning
     action_costs = (1.0  , 10.0  ,  10.0 )
-    path_followed = []
+    path_followed = [] #this will be the path with the nodes left to reach (when we reach a node, we delete it)
+    distance_tolerance = 0.2  #if we are closer to the next node than this distance, we will consider it has been reached
 
     
     try:
         while not goal_reached(robot_handle, goal, localized):
             
             if localized == False and pf.localized == True:
-                localized = True
+                #we enter here only when we pass from non-localized to localized
+                localized = True  #set the flag
                 print("localized at ")   
                 print(pf.centroid)
 
+                #and create the path
                 planning = Planning(m, action_costs)
                 path = planning.a_star((pf.centroid[0],pf.centroid[1]), goal)
                 smoothed_path = planning.smooth_path(path, data_weight=0.3, smooth_weight=0.1)
-                #planning.show(path, smoothed_path, block=False)
-                path_followed = smoothed_path.copy()
-                path_followed.pop(0)  #delete the start node
+                path_followed = smoothed_path.copy()  
+                path_followed.pop(0)                     #delete the start node, as it has been already reached
                          
             
             if not localized:
+                #if we are not localized yet, we explore the map and try to get our particle filter converged
                 v, w = navigation.explore(z_us, z_v, z_w)
                 robot.move(v, w)
                 z_us, z_v, z_w = robot.sense()
                 pf.move(z_v, z_w, dt)
 
-                if resample_count >= 25:
-                    #robot.move(0,0)
-                    '''
-                    start = time.time()
+                if resample_count >= 25: #we only resample every 25 steps, so more info is gathered and less time is lost
                     pf.resample(z_us)
-                    sense = time.time() - start
-
-                    start = time.time()
-                    pf.show('Sense', save_figure=False)
-                    plot_sense = time.time() - start
-                    '''
-                    pf.resample(z_us)
-                    #pf.show('Sense', save_figure=False)
                     resample_count = 0
-                    #robot.move(v,w)
 
 
             else:
-                #v, w = navigation.explore(z_us, z_v, z_w)
+                #once we are localized, we follow the path created previously, resampling this time at every simulation step
                 if path_followed:
                     v, w = navigation.move_control(pf.centroid, path_followed[0], z_us)
-                robot.move(v, w)
-                z_us, z_v, z_w = robot.sense()
-                pf.move(z_v, z_w, dt)
+                    robot.move(v, w)
+                    z_us, z_v, z_w = robot.sense()
+                    pf.move(z_v, z_w, dt)
+                    pf.resample(z_us)
 
-                #if resample_count >= 1:
-                #robot.move(0,0)
-                '''
-                start = time.time()
-                pf.resample(z_us)
-                sense = time.time() - start
-
-                start = time.time()
-                pf.show('Sense', save_figure=False)
-                plot_sense = time.time() - start
-                '''
-                pf.resample(z_us)
-                #resample_count = 0
-
-
-                if (path_followed):
+                    #check if the next node has been reached and delete it if so
                     distance = math.sqrt((pf.centroid[0] - path_followed[0][0]) ** 2 + (pf.centroid[1] - path_followed[0][1]) ** 2)
-                    if distance <= 0.2:
+                    if distance <= distance_tolerance:
                         del path_followed[0]
-                        #print("nodo alcanzado")
-                        #if path_followed:
-                            #planning.show(path_followed, block=False)
-                    
 
-                    #robot.move(v,w)
 
             # Execute the next simulation step
             sim.simxSynchronousTrigger(client_id)
@@ -164,10 +128,10 @@ if __name__ == '__main__':
             
             resample_count +=1
 
+        robot.move(0.0,0.0)  #stop the robot once we have reached the goal
+
     except KeyboardInterrupt:  # Press Ctrl+C to break the infinite loop and gracefully stop the simulation
         pass
-
-    robot.move(0,0)
 
     # Display time statistics
     execution_time = time.time() - start_time

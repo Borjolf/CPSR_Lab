@@ -86,6 +86,17 @@ class Planning:
         return
 
     def _cost(self,node2: Tuple[int, int], node3:Tuple[int,int], ancestors: Dict[Tuple[int, int], Tuple[int, int]]) -> float:
+        """Calculates the cost of going to the next node
+
+        Args:
+            node2: that's our current node
+            node3: that's the next node
+            ancestors: from that dictionary, we will get our previous node (node 1)
+
+        Returns:
+            cost: calculated cost of going from node 2 to node 3 knowing that the previous node is node 1
+
+        """
         cost = 0.0
 
         cost_straight, cost_left, cost_right = self._action_costs
@@ -136,7 +147,7 @@ class Planning:
                 print("error")
 
         except:
-            cost = cost_straight #this meains we are at the start point and we dont know the previous node
+            cost = cost_straight #this means that we are at the start point and we dont know the previous node
 
         return cost    
 
@@ -157,9 +168,7 @@ class Planning:
         """
         
         error = tolerance + 1.0  #so we can be sure it enters the while loop for the first time
-        #smooth_path = path   hacer esto es una mierda, porque te iguala las dos cosas, y si modificas una, modificas la otra, cositas de nuestro amigo monty python
-        smooth_path = path[:]   #esto si que crea una copia bien
-
+        smooth_path = path[:]   #we inicialize smooth_path without altering the original path
 
         while error > tolerance:
             error = 0

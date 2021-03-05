@@ -41,6 +41,8 @@ class ParticleFilter:
         self._figure, self._axes = plt.subplots(1, 1, figsize=figure_size)
 
         self.centroid = (0.0,0.0,0.0)
+        self.particle_count_reduced = 40
+
 
     def move(self, v: float, w: float, dt: float):
         """Performs a motion update on the particles.
@@ -66,10 +68,9 @@ class ParticleFilter:
             x2 = (dt * vn * math.cos((th1+th2)/2.0)) + x1
             y2 = (dt * vn * math.sin((th1+th2)/2.0)) + y1 
 
+            #check colisions
             segment = [ (x1,y1) , (x2,y2) ]
-
             colision, _ = self._map.check_collision(segment, False)
-
             if colision:
                 x2 = colision[0]
                 y2 = colision[1]
@@ -79,9 +80,32 @@ class ParticleFilter:
         return
 
 
-    def _center_found(self, threshold: float = 0.6 ):
+    def cluster_centroid(self):
+        #this function calculates the centroid of the whole set of particles, even if they are completely spread out or concentrated
 
-        flag = False
+        x_centroid = 0
+        y_centroid = 0
+
+        for j in range(len(self._particles)):
+            x_particle, y_particle, _ = self._particles[j]
+            x_centroid += x_particle
+            y_centroid += y_particle
+        
+        x_centroid = x_centroid/len(self._particles)
+        y_centroid = y_centroid/len(self._particles)
+
+        self.centroid = x_centroid,y_centroid,self._particles[0][2]  #we set the orientation of the centroid as the orientation of the first particle
+
+        #everytime we calculate the cluster centroid, we check if the particle filter has converged
+        self._has_converged()
+
+        return
+
+
+    def _has_converged(self, threshold: float = 0.6 ):
+        # this custom function determines if all the particles are around a single point, so we can say that our robot is localized
+
+        flag = False #if any particle is away from the centroid, this flag will be set to True
 
         for j in range(len(self._particles)):
 
@@ -101,7 +125,6 @@ class ParticleFilter:
         
            
 
-
     def resample(self, measurements: List[float]):
         """Samples a new set of set of particles using the resampling wheel method.
 
@@ -109,7 +132,6 @@ class ParticleFilter:
             measurements: Sensor measurements [m].
 
         """
-        # TODO: Complete with your code.
 
         new_particles = []
 
@@ -139,13 +161,15 @@ class ParticleFilter:
 
         self.cluster_centroid() #calculate centroid, and in that method we check if we have converged already
         
-        if localized_ant != self.localized: #reduce to 3 particles only and change noises
-            print("localized!")
+        if localized_ant != self.localized: #reduce to less particles and change noises only when it passes from non-localized to localized
             reduced_particles = []
-            for k in range(40):
-                #reduced_particles.append(new_particles[k])
-                reduced_particles.append(self.centroid)
-            self._particles = np.array(reduced_particles)
+
+            for k in range(self.particle_count_reduced):
+                reduced_particles.append(self.centroid) #we place all of them at the centroid of the cluster
+
+            self._particles = np.array(reduced_particles) #particle array is modified
+
+            #new noises
             self._sense_noise = self._sense_noise
             self._v_noise = self._v_noise 
             self._w_noise = self._w_noise
@@ -168,9 +192,7 @@ class ParticleFilter:
             dx = [math.cos(particle[2]) for particle in self._particles]
             dy = [math.sin(particle[2]) for particle in self._particles]
             axes.quiver(self._particles[:, 0], self._particles[:, 1], dx, dy, color='b', scale=15, scale_units='inches')
-            
-    
-            
+            #centroid:
             axes.quiver(self.centroid[0], self.centroid[1], math.cos(self.centroid[2]), math.sin(self.centroid[2]), color='r',scale=7, scale_units='inches')
         else:
             axes.plot(self._particles[:, 0], self._particles[:, 1], 'bo', markersize=1)
@@ -211,30 +233,6 @@ class ParticleFilter:
             file_path = os.path.join(save_dir, file_name)
             figure.savefig(file_path)
 
-    def cluster_centroid(self):
-
-        x_centroid = 0
-        y_centroid = 0
-        th_centroid = 0
-
-        for j in range(len(self._particles)):
-            x_particle, y_particle, th_particle = self._particles[j]
-            x_centroid += x_particle
-            y_centroid += y_particle
-            #th_centroid += (th_particle)
-        
-        x_centroid = x_centroid/len(self._particles)
-        y_centroid = y_centroid/len(self._particles)
-        #th_centroid = (th_centroid/len(self._particles))
-
-        self.centroid = x_centroid,y_centroid,self._particles[0][2]
-
-        self._center_found()
-
-
-
-        return
-
 
     def _init_particles(self, particle_count: int) -> np.ndarray:
         """Draws N random valid particles.
@@ -248,10 +246,10 @@ class ParticleFilter:
         Returns: A numpy array of tuples (x, y, theta).
 
         """
-        #particles = np.zeros((particle_count, 3), dtype=object)
         particles = []
 
-        #x_min, y_min, x_max, y_max = self._map.bounds()
+
+        #particles are placed only at the center of the nodes and non-randomly uniformly distributed
         count_x = [-4,-3,-2,-1,0,1,2,3,4]
         count_y = [-4,-3,-2,-1,0,1,2,3,4]
         count_th = [0, math.pi/2, math.pi, 3*math.pi/2]
@@ -302,8 +300,6 @@ class ParticleFilter:
             _ , distance = self._map.check_collision(rays[i], True)
             z_hat[i] = distance
     
-        # TODO: Complete with your code.
-
         return z_hat
 
     @staticmethod
@@ -319,7 +315,6 @@ class ParticleFilter:
             float: Gaussian.
 
         """
-        # TODO: Complete with your code.
 
         gaussian = (1/math.sqrt(2*math.pi*math.pow(sigma,2))) * math.exp(-0.5*math.pow((x-mu),2)/math.pow(sigma,2))
         return gaussian
@@ -339,19 +334,19 @@ class ParticleFilter:
             float: Probability.
 
         """
-        # TODO: Complete with your code.
 
         p=1
 
         measurements_hat = self._sense(particle)
 
         for i in range(len(measurements)):
-            if measurements_hat[i] > 2:
+            #we set a limit to the measurements (it would be infinite if the sensors dont get a valid reading)
+            if measurements_hat[i] > 1.5:
                 x_hat = 1.5
             else:
                 x_hat = measurements_hat[i]
 
-            if measurements[i] > 2:
+            if measurements[i] > 1.5:
                 x = 1.5
             else:
                 x = measurements[i]

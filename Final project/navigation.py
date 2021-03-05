@@ -50,17 +50,7 @@ class Navigation:
         if self.estado == 0:
             error_angulo = z_us[7] - z_us[8]
             error_distancia = (z_us[7] + z_us[8]) / 2.0 - 0.35
-            '''
-            if error_angulo > 10.0:
-                error_angulo = 10.0
-            elif error_angulo < -10.0:
-                error_angulo = -10.0
-            if error_distancia > 10.0:
-                error_distancia = 10.0
-            elif error_distancia < -10.0:
-                error_distancia = -10.0
-                
-            '''
+
             w = -kpa * error_angulo - kpd * error_distancia
             v = 0.9
             
@@ -87,7 +77,6 @@ class Navigation:
             v = 0
             if  z_us[7] < 0.8:
                 self.estado = 22
-                #self.t3 = time.time()
 
         elif self.estado == 22:
             w = -0.5
@@ -100,67 +89,61 @@ class Navigation:
             v = 0.5
             if  z_us[7] < 0.9:
                 self.estado = 0
-        
-        
-
-        '''
-        media_delanteros = (z_us[3] + z_us[4]) / 2.0
-
-        if self.estado == 0:
-            error = z_us[0] - z_us[7]
-            w = error * 5
-            v = 0.3
-            
-            if media_delanteros <= 0.3:
-                self.estado = 1
-        
-        if self.estado == 1:
-            w = 1.8
-            v = 0
-            if media_delanteros > 2:
-                self.estado = 0
-
-        '''
 
         return v, w
     
     def move_control(self,centroid: Tuple[float,float,float], goal: Tuple[float,float],z_us: List[float])-> Tuple[float, float]:
+        """Path following algorithm.
+
+        Args:
+            z_us: Distance from every ultrasonic sensor to the closest obstacle [m].
+            goal: next node of the path that our robot has to reach
+            centroid: current location of the robot calculated by our particle filter
+
+        Returns:
+            v: Linear velocity [m/s].
+            w: Angular velocity [rad/s].
+
+        """
+
         kpa_th = 1.8
         kpa = 2.0
         kpd = 1.0
-        w = 0
         
+        #next node orientation control
         error_angulo = centroid[2] - math.atan2(goal[1]-centroid[1],goal[0]-centroid[0])
+
         if error_angulo > np.pi:
             error_angulo -= 2*np.pi
+        elif error_angulo < -np.pi:
+            error_angulo += 2*np.pi
         
         w_th = -kpa_th * error_angulo
 
-
+        #right-hand wall orientation and distance control, we only use ir if our ultrasonic readings are valid
         if z_us[7] < 0.8 and z_us[8] < 0.8:
             error_angulo_p = z_us[7] - z_us[8]
             error_distancia = (z_us[7] + z_us[8]) / 2.0 - 0.35
 
-            w = -kpa * error_angulo_p - kpd * error_distancia
+            w_p = -kpa * error_angulo_p - kpd * error_distancia
+        else:
+            w_p = 0
         
-        
+        #we add both control so they can fight each other
+        w = w_th + w_p
 
-        w+=w_th
-
+        #we limit the w:
         w_limit = 2.2
-
-
         if w > w_limit:
             w = w_limit
         elif w < -w_limit:
             w = -w_limit
 
-
+        #if we are too awry from the next node, we reduce the linear velocity (specially useful in curves)
         if(abs(error_angulo)) > math.pi/6.0:
             v = 0.0
         else:
             v = 0.8
 
-        
         return v,w
     
