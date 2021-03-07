@@ -93,18 +93,16 @@ class Navigation:
             v = 0.5
             if  z_us[7] < 0.9:
                 self.estado = 0
-            elif media_delanteros < 0.1:
+            elif media_delanteros < 0.05:
                 self.estado = 11
 
         elif self.estado == 4:
-            w = 0
-            v = 0.85
+            w = 0.0
+            v = 0.4
             if  z_us[7] <= 0.95:
                 self.estado = 0
             elif media_delanteros <= 0.6:
                 self.estado = 11
-
-        print(self.estado)
 
         return v, w
     

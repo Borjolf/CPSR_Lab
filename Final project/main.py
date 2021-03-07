@@ -44,7 +44,7 @@ if __name__ == '__main__':
     sim.simxStartSimulation(client_id, sim.simx_opmode_blocking)
 
     # Initial and final locations
-    start = (0, 1, math.pi/2)
+    start = (-1, -1,0* math.pi/2)
     goal = (4, -4)
 
     # Create the robot
@@ -71,7 +71,7 @@ if __name__ == '__main__':
 
 
     #path planning
-    action_costs = (1.0  , 10.0  ,  10.0 )
+    action_costs = (10.0  , 12.0  ,  12.0 )
     path_followed = [] #this will be the path with the nodes left to reach (when we reach a node, we delete it)
     distance_tolerance = 0.2  #if we are closer to the next node than this distance, we will consider it has been reached
 
@@ -88,7 +88,8 @@ if __name__ == '__main__':
                 planning = Planning(m, action_costs)
                 path = planning.a_star((pf.centroid[0],pf.centroid[1]), goal)
                 smoothed_path = planning.smooth_path(path, data_weight=0.3, smooth_weight=0.1)
-                path_followed = smoothed_path.copy()  
+                path_followed = smoothed_path.copy() 
+                planning.show(smoothed_path,block=False) 
                 print("localized at ")   
                 print(path_followed[0])
                 path_followed.pop(0)                     #delete the start node, as it has been already reached
@@ -105,7 +106,7 @@ if __name__ == '__main__':
                     pf.resample(z_us)
                     resample_count = 0
 
-                    pf.show('Sense', save_figure=False)
+                    #pf.show('Sense', save_figure=False)
 
 
             else:
@@ -116,6 +117,8 @@ if __name__ == '__main__':
                     z_us, z_v, z_w = robot.sense()
                     pf.move(z_v, z_w, dt)
                     pf.resample(z_us)
+
+                    #pf.show('Sense', save_figure=False)
 
                     #check if the next node has been reached and delete it if so
                     distance = math.sqrt((pf.centroid[0] - path_followed[0][0]) ** 2 + (pf.centroid[1] - path_followed[0][1]) ** 2)

@@ -12,8 +12,8 @@ class ParticleFilter:
     """Particle filter implementation."""
 
     def __init__(self, map_object: Map, sensors: List[Tuple[float, float, float]],
-                 sensor_range: float, particle_count: int = 1400, sense_noise: float = 0.5*1.4,
-                 v_noise: float = 0.05*10, w_noise: float = 0.05*10, figure_size: Tuple[float, float] = (7, 7)):
+                 sensor_range: float, particle_count: int = 1400, sense_noise: float = 0.5*1.65,
+                 v_noise: float = 0.05*6, w_noise: float = 0.05*6, figure_size: Tuple[float, float] = (7, 7)):
         """Particle filter class initializer.
 
         Args:
@@ -41,7 +41,7 @@ class ParticleFilter:
         self._figure, self._axes = plt.subplots(1, 1, figsize=figure_size)
 
         self.centroid = (0.0,0.0,0.0)
-        self.particle_count_reduced = 40
+        self.particle_count_reduced = 20
 
 
     def move(self, v: float, w: float, dt: float):
@@ -102,7 +102,7 @@ class ParticleFilter:
         return
 
 
-    def _has_converged(self, threshold: float = 0.6 ):
+    def _has_converged(self, threshold: float = 0.5 ):
         # this custom function determines if all the particles are around a single point, so we can say that our robot is localized
 
         flag = False #if any particle is away from the centroid, this flag will be set to True
@@ -169,9 +169,9 @@ class ParticleFilter:
             self._particles = np.array(reduced_particles) #particle array is modified
 
             #new noises
-            self._sense_noise = self._sense_noise
-            self._v_noise = self._v_noise 
-            self._w_noise = self._w_noise
+            self._sense_noise = self._sense_noise *0.9
+            self._v_noise = self._v_noise *10.0/6.0
+            self._w_noise = self._w_noise *10.0/6.0
         
 
         return
