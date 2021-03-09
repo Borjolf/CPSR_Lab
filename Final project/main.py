@@ -44,8 +44,8 @@ if __name__ == '__main__':
     sim.simxStartSimulation(client_id, sim.simx_opmode_blocking)
 
     # Initial and final locations
-    start = (-1, -1,0* math.pi/2)
-    goal = (4, -4)
+    start = (0, -3,-math.pi/2)
+    goal = (4, 4)
 
     # Create the robot
     _, robot_handle = create_robot(client_id, start[0], start[1], start[2])
@@ -92,7 +92,7 @@ if __name__ == '__main__':
                 planning.show(smoothed_path,block=False) 
                 print("localized at ")   
                 print(path_followed[0])
-                path_followed.pop(0)                     #delete the start node, as it has been already reached
+                #path_followed.pop(0)                     #delete the start node, as it has been already reached
                          
             
             if not localized:
@@ -124,6 +124,15 @@ if __name__ == '__main__':
                     distance = math.sqrt((pf.centroid[0] - path_followed[0][0]) ** 2 + (pf.centroid[1] - path_followed[0][1]) ** 2)
                     if distance <= distance_tolerance:
                         del path_followed[0]
+                
+                else:
+                    #this will be executed in case our robot thinks it reached the goal, but it actually didn't
+                    v, w = navigation.move_control(pf.centroid, goal, z_us)
+                    robot.move(v, w)
+                    z_us, z_v, z_w = robot.sense()
+                    pf.move(z_v, z_w, dt)
+                    pf.resample(z_us)
+
 
 
             # Execute the next simulation step
