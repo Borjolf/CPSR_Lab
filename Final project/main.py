@@ -44,7 +44,7 @@ if __name__ == '__main__':
     sim.simxStartSimulation(client_id, sim.simx_opmode_blocking)
 
     # Initial and final locations
-    start = (0, -3,-math.pi/2)
+    start = (2, -3,-0*math.pi/2)
     goal = (4, 4)
 
     # Create the robot
